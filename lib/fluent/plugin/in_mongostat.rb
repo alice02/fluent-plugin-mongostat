@@ -17,7 +17,7 @@ module Fluent
 
 
     desc 'The command line options of mongostat'
-    config_param :option, :string, default: '--discover'
+    config_param :option, :string, default: ''
     desc 'The interval of refreshing'
     config_param :refresh_interval, :time, default: 10
     desc 'The tag of the event'
@@ -25,8 +25,7 @@ module Fluent
 
     def configure(conf)
       super
-      @command = %Q[ mongostat #{@option} --json #{@refresh_interval}]
-      @hostname = `hostname`.chomp!
+      @command = %Q[ mongostat #{@option} --json #{@refresh_interval} ]
     end
 
     def start
@@ -42,7 +41,7 @@ module Fluent
       Open3.popen3(@command) do |i, o, e, w|
         o.each do |line|
           stat = JSON.parse(line.delete!('*'))
-          router.emit(@tag, Fluent::Engine.now, stat)
+          router.emit(@tag, Fluent::Engine.now, stat.values)
         end
       end
     end
