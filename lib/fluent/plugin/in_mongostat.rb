@@ -1,10 +1,9 @@
-require 'fluent/plugin/input'
 require 'open3'
 require 'json'
 
 
-module Fluent::Plugin
-  class MongostatInput < Fluent::Plugin::Input
+module Fluent
+  class MongostatInput < Input
 
     Fluent::Plugin.register_input('mongostat', self)
 
