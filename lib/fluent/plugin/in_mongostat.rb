@@ -1,5 +1,6 @@
 require 'open3'
 require 'json'
+require 'mkmf'
 
 
 module Fluent
@@ -25,7 +26,14 @@ module Fluent
 
     def configure(conf)
       super
-      @command = %Q[ mongostat #{@option} --json #{@refresh_interval} ]
+      base_command = "mongostat"
+      begin
+        `#{base_command} --version`
+      rescue Errno::ENOENT
+        raise ConfigError, "'#{base_command}' command not found."
+      end
+
+      @command = %Q[ #{base_command} #{@option} --json #{@refresh_interval} ]
     end
 
     def start
@@ -41,7 +49,7 @@ module Fluent
       Open3.popen3(@command) do |i, o, e, w|
         o.each do |line|
           stat = JSON.parse(line.delete!('*'))
-          router.emit(@tag, Fluent::Engine.now, stat.values)
+          router.emit(@tag, Fluent::Engine.now, stat[stats.keys[0]])
         end
       end
     end
