@@ -1,7 +1,5 @@
 require 'open3'
 require 'json'
-require 'mkmf'
-
 
 module Fluent
   class MongostatInput < Input
@@ -15,7 +13,6 @@ module Fluent
     unless method_defined?(:router)
       define_method('router') { Fluent::Engine }
     end
-
 
     desc 'The command line options of mongostat'
     config_param :option, :string, default: ''
@@ -33,7 +30,7 @@ module Fluent
         raise ConfigError, "'#{base_command}' command not found."
       end
 
-      @command = %Q[ #{base_command} #{@option} --json #{@refresh_interval} ]
+      @command = %(#{base_command} #{@option} --json #{@refresh_interval})
     end
 
     def start
@@ -49,7 +46,7 @@ module Fluent
       Open3.popen3(@command) do |i, o, e, w|
         o.each do |line|
           stat = JSON.parse(line.delete!('*'))
-          router.emit(@tag, Fluent::Engine.now, stat[stats.keys[0]])
+          router.emit(@tag, Fluent::Engine.now, stat[stat.keys[0]])
         end
       end
     end
