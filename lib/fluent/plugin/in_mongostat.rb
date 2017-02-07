@@ -23,7 +23,7 @@ module Fluent
 
     def configure(conf)
       super
-      base_command = "mongostat"
+      base_command = 'mongostat'
       begin
         `#{base_command} --version`
       rescue Errno::ENOENT
@@ -45,10 +45,39 @@ module Fluent
     def run
       Open3.popen3(@command) do |i, o, e, w|
         o.each do |line|
-          stat = JSON.parse(line.delete!('*'))
-          router.emit(@tag, Fluent::Engine.now, stat[stat.keys[0]])
+          stat = parse_line(line.delete!("*"))
+          router.emit(@tag, Fluent::Engine.now, stat)
         end
       end
+    end
+
+    def parse_line(line)
+      stat = JSON.parse(line)
+      stat = stat["localhost:27017"]
+
+      stat['command'] = split_by_pipe(stat['command'])[0]
+
+      if stat['arw'] != nil
+        arw = split_by_pipe(stat['arw'])
+      elsif stat['ar|aw'] != nil
+        arw = split_by_pipe(stat['ar|aw'])
+        stat.delete('ar|aw')
+      end
+      stat['arw'] = {'ar' => arw[0], 'aw' => arw[1]}
+
+      if stat['qrw'] != nil
+        qrw = split_by_pipe(stat['qrw'])
+      elsif stat['qr|qw'] != nil
+        qrw = split_by_pipe(stat['qr|qw'])
+        stat.delete('qr|qw')
+      end
+      stat['qrw'] = {'qr' => qrw[0], 'qw' => qrw[1]}
+
+      stat
+    end
+
+    def split_by_pipe(str)
+      return str.split('|')
     end
 
   end
