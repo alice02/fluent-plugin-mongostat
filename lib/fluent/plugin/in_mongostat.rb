@@ -17,7 +17,7 @@ module Fluent
     desc 'The command line options of mongostat'
     config_param :option, :string, default: ''
     desc 'The interval of refreshing'
-    config_param :refresh_interval, :time, default: 10
+    config_param :refresh_interval, :time, default: 30
     desc 'The tag of the event'
     config_param :tag, :string
 
@@ -31,6 +31,7 @@ module Fluent
       end
 
       @command = %(#{base_command} #{@option} --json #{@refresh_interval})
+      @hostname = `hostname`.chomp!
     end
 
     def start
@@ -46,14 +47,19 @@ module Fluent
       Open3.popen3(@command) do |i, o, e, w|
         o.each do |line|
           stat = parse_line(line.delete!("*"))
-          router.emit(@tag, Fluent::Engine.now, stat)
+          replaced_hash = replace_hash_key(stat, 'host', 'hostname')
+          router.emit(@tag, Fluent::Engine.now, replaced_hash)
         end
       end
     end
 
     def parse_line(line)
       stat = JSON.parse(line)
-      stat = stat["localhost:27017"]
+      if stat[@hostname] != nil
+        stat = stat[@hostname]
+      else
+        stat = stat["#{@hostname}:27017"]
+      end
 
       stat['command'] = split_by_pipe(stat['command'])[0]
 
@@ -74,6 +80,10 @@ module Fluent
       stat['qrw'] = {'qr' => qrw[0], 'qw' => qrw[1]}
 
       stat
+    end
+
+    def replace_hash_key(hash, old_key, new_key)
+      hash[new_key] = hash.delete(old_key)
     end
 
     def split_by_pipe(str)
