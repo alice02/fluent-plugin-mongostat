@@ -45,7 +45,7 @@ module Fluent
     def run
       Open3.popen3(@command) do |i, o, e, w|
         o.each do |line|
-          stat = parse_line(line.delete!("*"))
+          stat = parse_line(line)
           replaced_hash = replace_hash_key(stat, 'host', 'hostname')
           router.emit(@tag, Fluent::Engine.now, replaced_hash)
         end
@@ -53,7 +53,7 @@ module Fluent
     end
 
     def parse_line(line)
-      stat = JSON.parse(line).values[0]
+      stat = JSON.parse(line.delete!('*')).values[0]
 
       stat['command'] = split_by_pipe(stat['command'])[0]
 
