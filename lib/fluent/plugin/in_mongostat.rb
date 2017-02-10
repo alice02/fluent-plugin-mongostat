@@ -1,3 +1,4 @@
+require 'fluent/input'
 require 'open3'
 require 'json'
 
@@ -15,11 +16,11 @@ module Fluent
     end
 
     desc 'The command line options of mongostat'
-    config_param :option, :string, default: ''
+    config_param :option, :string, default: nil
     desc 'The interval of refreshing'
-    config_param :refresh_interval, :time, default: 30
+    config_param :refresh_interval, :integer, default: 30
     desc 'The tag of the event'
-    config_param :tag, :string
+    config_param :tag, :string, default: 'mongostat'
 
     def configure(conf)
       super
