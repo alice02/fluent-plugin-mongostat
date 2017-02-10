@@ -24,15 +24,13 @@ module Fluent
 
     def configure(conf)
       super
-      base_command = 'mongostat'
       begin
-        `#{base_command} --version`
+        call_system('mongostat --version')
       rescue Errno::ENOENT
-        raise ConfigError, "'#{base_command}' command not found."
+        raise ConfigError, '"mongostat" command not found.'
       end
 
-      @command = %(#{base_command} #{@option} --json #{@refresh_interval})
-      @hostname = `hostname`.chomp!
+      @command = %(mongostat #{@option} --json #{@refresh_interval})
     end
 
     def start
@@ -85,6 +83,10 @@ module Fluent
 
     def split_by_pipe(str)
       return str.split('|')
+    end
+
+    def call_system(command)
+      `#{command}`
     end
 
   end
