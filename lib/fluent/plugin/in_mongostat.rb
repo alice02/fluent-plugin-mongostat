@@ -55,12 +55,7 @@ module Fluent
     end
 
     def parse_line(line)
-      stat = JSON.parse(line)
-      if stat[@hostname] != nil
-        stat = stat[@hostname]
-      else
-        stat = stat["#{@hostname}:27017"]
-      end
+      stat = JSON.parse(line).values[0]
 
       stat['command'] = split_by_pipe(stat['command'])[0]
 
