@@ -39,6 +39,7 @@ module Fluent
     end
 
     def shutdown
+      super
       Thread.kill(@thread)
     end
 
