@@ -74,12 +74,12 @@ module Fluent
       end
       stat['qrw'] = {'qr' => qrw[0], 'qw' => qrw[1]}
 
-      stat
+      return stat
     end
 
     def replace_hash_key(hash, old_key, new_key)
       hash[new_key] = hash.delete(old_key)
-      hash
+      return hash
     end
 
     def split_by_pipe(str)
