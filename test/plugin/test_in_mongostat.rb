@@ -1,6 +1,7 @@
 require 'helper'
 
 class MongostatInputTest < Minitest::Test
+
   def setup
     Fluent::Test.setup
   end
@@ -8,15 +9,18 @@ class MongostatInputTest < Minitest::Test
   CONFIG = %[
   ]
 
-  def create_driver(conf = CONFIG, tag='test', stub = TRUE)
+  def create_driver(conf = CONFIG, tag = 'test', command_exists = true)
     driver = Fluent::Test::BufferedOutputTestDriver.new(Fluent::MongostatInput, tag)
-    if stub
-      mock_method = MiniTest::Mock.new.expect :call, 'stdout', ["mongostat --version"]
-      driver.instance.stub :call_system, mock_method do
+    if command_exists
+      stub_method = MiniTest::Mock.new.expect :call, 'something output', ["mongostat --version"]
+      driver.instance.stub :call_system, stub_method do
         return driver.configure(conf)
       end
     else
-      return driver.configure(conf)
+      raises_exception = -> (x) { raise Errno::ENOENT }
+      driver.instance.stub :call_system, raises_exception do
+        return driver.configure(conf)
+      end
     end
   end
 
