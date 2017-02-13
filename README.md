@@ -10,8 +10,7 @@
 
 ## Installation
 ```
-$ rake build
-$ fluent-gem install --local pkg/fluent-plugin-mongostat.gem
+$ fluent-gem install fluent-plugin-mongostat
 ```
 
 ## Usage
@@ -34,4 +33,4 @@ Option for mongostat command.
 
 ### refresh_interval
 Interval of get mongostat metrics.
-- default: 10
+- default: 30
