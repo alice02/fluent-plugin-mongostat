@@ -15,12 +15,12 @@ class MongostatInputTest < Minitest::Test
     driver = Fluent::Test::BufferedOutputTestDriver.new(Fluent::MongostatInput, tag)
     if command_exists
       stub_method = MiniTest::Mock.new.expect :call, 'something output', ["mongostat --version"]
-      driver.instance.stub :call_system, stub_method do
+      driver.instance.stub :call_command, stub_method do
         return driver.configure(conf)
       end
     else
       raises_exception = -> (x) { raise Errno::ENOENT }
-      driver.instance.stub :call_system, raises_exception do
+      driver.instance.stub :call_command, raises_exception do
         return driver.configure(conf)
       end
     end
@@ -54,16 +54,29 @@ class MongostatInputTest < Minitest::Test
 
   let(:mongostat_output_with_discover) {
     '{"host1":{"ar|aw":"0|0","command":"9|0","conn":"32","delete":"*0","flushes":"0","getmore":"1",' +
-      '"host":"host1","insert":"*0","netIn":"793b","netOut":"44.0k","qr|qw":"0|0","query":"*0",' +
+      '"host":"host1","insert":"*0","net_in":"793b","net_out":"44.0k","qr|qw":"0|0","query":"*0",' +
       '"repl":"PRI","res":"1.08G","set":"set1","time":"11:26:11","update":"*0","vsize":"265M"},' +
       '"host2":{"ar|aw":"0|0","command":"15|0","conn":"42","delete":"*0","flushes":"0","getmore":"0",' +
-      '"host":"host2","insert":"*0","netIn":"3.90k","netOut":"89.7k","qr|qw":"0|0","query":"23",' +
+      '"host":"host2","insert":"*0","net_in":"3.90k","net_out":"89.7k","qr|qw":"0|0","query":"23",' +
       '"repl":"SEC","res":"994M","set":"set1","time":"11:26:11","update":"*0","vsize":"265M"}}'
+  }
+
+  let(:mongostat_error_output) {
+    '2017-02-14T00:30:18.076+0000    Failed: error connecting to db server: no reachable servers'
+  }
+
+  let(:mongostat_output_with_no_data) {
+    '{"localhost:27017":{"error":"no data received"}}'
   }
 
   def test_parse_line
     d = create_driver
     parsed_hash = d.instance.parse_line mongostat_output
+
+    assert parsed_hash['command'] != '2|0'
+    assert parsed_hash['arw'] != nil
+    assert parsed_hash['qrw'] != nil
+
     assert_equal parsed_hash['arw'], {'ar'=>'1', 'aw'=>'0'}
     assert_equal parsed_hash['command'], '2'
     assert_equal parsed_hash['conn'], '1'
@@ -86,6 +99,11 @@ class MongostatInputTest < Minitest::Test
   def test_parse_line_with_discover
     d = create_driver
     parsed_hash = d.instance.parse_line mongostat_output_with_discover
+
+    assert parsed_hash['command'] != '9|0'
+    assert parsed_hash['arw'] != nil
+    assert parsed_hash['qrw'] != nil
+
     assert_equal parsed_hash['arw'], {'ar'=>'0', 'aw'=>'0'}
     assert_equal parsed_hash['command'], '9'
     assert_equal parsed_hash['conn'], '32'
@@ -93,8 +111,8 @@ class MongostatInputTest < Minitest::Test
     assert_equal parsed_hash['flushes'], '0'
     assert_equal parsed_hash['getmore'], '1'
     assert_equal parsed_hash['insert'], '0'
-    assert_equal parsed_hash['netIn'], '793b'
-    assert_equal parsed_hash['netOut'], '44.0k'
+    assert_equal parsed_hash['net_in'], '793b'
+    assert_equal parsed_hash['net_out'], '44.0k'
     assert_equal parsed_hash['qrw'], {'qr'=>'0', 'qw'=>'0'}
     assert_equal parsed_hash['query'], '0'
     assert_equal parsed_hash['repl'], 'PRI'
@@ -105,16 +123,24 @@ class MongostatInputTest < Minitest::Test
     assert_equal parsed_hash['vsize'], '265M'
   end
 
+  def test_parse_line_with_no_data
+    d = create_driver
+    parsed_hash = d.instance.parse_line mongostat_output_with_no_data
+    assert_equal parsed_hash['error'], 'no data received'
+  end
+
+  def test_parse_line_with_error
+    d = create_driver
+    assert_raises(Fluent::ParserError) do
+      parsed_hash = d.instance.parse_line mongostat_error_output
+    end
+  end
+
   def test_replace_hash_key
     hash = {'old0'=>'0', 'old1'=>'1'}
     d = create_driver
     new_hash = d.instance.replace_hash_key hash, 'old0', 'new0'
     assert_equal new_hash, {'new0'=>'0', 'old1'=>'1'}
-  end
-
-  def test_split_by_pipe
-    d = create_driver
-    assert_equal d.instance.split_by_pipe('a|b'), ['a', 'b']
   end
 
 end

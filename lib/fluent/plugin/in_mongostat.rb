@@ -25,7 +25,7 @@ module Fluent
     def configure(conf)
       super
       begin
-        call_system('mongostat --version')
+        call_command('mongostat --version')
       rescue Errno::ENOENT
         raise ConfigError, '"mongostat" command not found.'
       end
@@ -54,25 +54,33 @@ module Fluent
     end
 
     def parse_line(line)
-      stat = JSON.parse(line.delete!('*')).values[0]
+      begin
+        stat = JSON.parse(line.delete('*')).values[0]
+      rescue JSON::ParserError
+        raise ParserError, 'response json parse error'
+      end
 
-      stat['command'] = split_by_pipe(stat['command'])[0]
+      if stat.has_key?('command')
+        stat['command'] = stat['command'].split('|')[0]
+      end
 
-      if stat['arw'] != nil
-        arw = split_by_pipe(stat['arw'])
-      elsif stat['ar|aw'] != nil
-        arw = split_by_pipe(stat['ar|aw'])
+      if stat.has_key?('arw')
+        arw = stat['arw'].split('|')
+        stat['arw'] = {'ar' => arw[0], 'aw' => arw[1]}
+      elsif stat.has_key?('ar|aw')
+        arw = stat['ar|aw'].split('|')
         stat.delete('ar|aw')
+        stat['arw'] = {'ar' => arw[0], 'aw' => arw[1]}
       end
-      stat['arw'] = {'ar' => arw[0], 'aw' => arw[1]}
 
-      if stat['qrw'] != nil
-        qrw = split_by_pipe(stat['qrw'])
-      elsif stat['qr|qw'] != nil
-        qrw = split_by_pipe(stat['qr|qw'])
+      if stat.has_key?('qrw')
+        qrw = stat['qrw'].split('|')
+        stat['qrw'] = {'qr' => qrw[0], 'qw' => qrw[1]}
+      elsif stat.has_key?('qr|qw')
+        qrw = stat['qr|qw'].split('|')
         stat.delete('qr|qw')
+        stat['qrw'] = {'qr' => qrw[0], 'qw' => qrw[1]}
       end
-      stat['qrw'] = {'qr' => qrw[0], 'qw' => qrw[1]}
 
       return stat
     end
@@ -82,11 +90,7 @@ module Fluent
       return hash
     end
 
-    def split_by_pipe(str)
-      return str.split('|')
-    end
-
-    def call_system(command)
+    def call_command(command)
       `#{command}`
     end
 
