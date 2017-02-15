@@ -24,9 +24,8 @@ module Fluent
 
     def configure(conf)
       super
-      begin
-        call_command('mongostat --version')
-      rescue Errno::ENOENT
+
+      if !mongostat_exists?
         raise ConfigError, '"mongostat" command not found.'
       end
 
@@ -112,8 +111,13 @@ module Fluent
       return hash
     end
 
-    def call_command(command)
-      `#{command}`
+    def mongostat_exists?
+      begin
+        `mongostat --version`
+        return true
+      rescue Errno::ENOENT
+        return false
+      end
     end
 
   end
