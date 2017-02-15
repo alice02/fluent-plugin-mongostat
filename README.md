@@ -1,6 +1,6 @@
 # Fluent::Plugin::Mongostat, a plugin for Fluentd
 
-[![CircleCI](https://circleci.com/gh/alice02/fluent-plugin-mongostat.svg?style=svg)](https://circleci.com/gh/alice02/fluent-plugin-mongostat)
+[![CircleCI](https://circleci.com/gh/alice02/fluent-plugin-mongostat.svg?style=svg&circle-token=559c6f969d03037db13ba41c095470155a70da99)](https://circleci.com/gh/alice02/fluent-plugin-mongostat)
 
 ## Overview
 - mongostat log input plugin for fluentd
