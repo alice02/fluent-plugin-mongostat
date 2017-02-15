@@ -7,7 +7,6 @@ class MongostatInputTest < Minitest::Test
     Fluent::Test.setup
   end
 
-
   CONFIG = %[
   ]
 
@@ -54,10 +53,10 @@ class MongostatInputTest < Minitest::Test
 
   let(:mongostat_output_with_discover) {
     '{"host1":{"ar|aw":"0|0","command":"9|0","conn":"32","delete":"*0","flushes":"0","getmore":"1",' +
-      '"host":"host1","insert":"*0","net_in":"793b","net_out":"44.0k","qr|qw":"0|0","query":"*0",' +
+      '"host":"host1","insert":"*0","netIn":"793b","netOut":"44.0k","qr|qw":"0|0","query":"*0",' +
       '"repl":"PRI","res":"1.08G","set":"set1","time":"11:26:11","update":"*0","vsize":"265M"},' +
       '"host2":{"ar|aw":"0|0","command":"15|0","conn":"42","delete":"*0","flushes":"0","getmore":"0",' +
-      '"host":"host2","insert":"*0","net_in":"3.90k","net_out":"89.7k","qr|qw":"0|0","query":"23",' +
+      '"host":"host2","insert":"*0","netIn":"3.90k","netOut":"89.7k","qr|qw":"0|0","query":"23",' +
       '"repl":"SEC","res":"994M","set":"set1","time":"11:26:11","update":"*0","vsize":"265M"}}'
   }
 
@@ -77,22 +76,22 @@ class MongostatInputTest < Minitest::Test
     assert parsed_hash['arw'] != nil
     assert parsed_hash['qrw'] != nil
 
-    assert_equal parsed_hash['arw'], {'ar'=>'1', 'aw'=>'0'}
-    assert_equal parsed_hash['command'], '2'
-    assert_equal parsed_hash['conn'], '1'
-    assert_equal parsed_hash['delete'], '4'
-    assert_equal parsed_hash['dirty'], '0.1%'
-    assert_equal parsed_hash['flushes'], '2'
-    assert_equal parsed_hash['getmore'], '1'
-    assert_equal parsed_hash['insert'], '3'
+    assert_equal parsed_hash['arw'], {'ar'=>1, 'aw'=>0}
+    assert_equal parsed_hash['command'], 2
+    assert_equal parsed_hash['conn'], 1
+    assert_equal parsed_hash['delete'], 4
+    assert_equal parsed_hash['dirty'], 0.1
+    assert_equal parsed_hash['flushes'], 2
+    assert_equal parsed_hash['getmore'], 1
+    assert_equal parsed_hash['insert'], 3
     assert_equal parsed_hash['net_in'], '158b'
     assert_equal parsed_hash['net_out'], '44.7k'
-    assert_equal parsed_hash['qrw'], {'qr'=>'3', 'qw'=>'1'}
-    assert_equal parsed_hash['query'], '10'
+    assert_equal parsed_hash['qrw'], {'qr'=>3, 'qw'=>1}
+    assert_equal parsed_hash['query'], 10
     assert_equal parsed_hash['res'], '62.0M'
     assert_equal parsed_hash['time'], '06:32:22'
-    assert_equal parsed_hash['update'], '1'
-    assert_equal parsed_hash['used'], '0.3%'
+    assert_equal parsed_hash['update'], 1
+    assert_equal parsed_hash['used'], 0.3
     assert_equal parsed_hash['vsize'], '265M'
   end
 
@@ -104,22 +103,22 @@ class MongostatInputTest < Minitest::Test
     assert parsed_hash['arw'] != nil
     assert parsed_hash['qrw'] != nil
 
-    assert_equal parsed_hash['arw'], {'ar'=>'0', 'aw'=>'0'}
-    assert_equal parsed_hash['command'], '9'
-    assert_equal parsed_hash['conn'], '32'
-    assert_equal parsed_hash['delete'], '0'
-    assert_equal parsed_hash['flushes'], '0'
-    assert_equal parsed_hash['getmore'], '1'
-    assert_equal parsed_hash['insert'], '0'
+    assert_equal parsed_hash['arw'], {'ar'=>0, 'aw'=>0}
+    assert_equal parsed_hash['command'], 9
+    assert_equal parsed_hash['conn'], 32
+    assert_equal parsed_hash['delete'], 0
+    assert_equal parsed_hash['flushes'], 0
+    assert_equal parsed_hash['getmore'], 1
+    assert_equal parsed_hash['insert'], 0
     assert_equal parsed_hash['net_in'], '793b'
     assert_equal parsed_hash['net_out'], '44.0k'
-    assert_equal parsed_hash['qrw'], {'qr'=>'0', 'qw'=>'0'}
-    assert_equal parsed_hash['query'], '0'
+    assert_equal parsed_hash['qrw'], {'qr'=>0, 'qw'=>0}
+    assert_equal parsed_hash['query'], 0
     assert_equal parsed_hash['repl'], 'PRI'
     assert_equal parsed_hash['res'], '1.08G'
     assert_equal parsed_hash['set'], 'set1'
     assert_equal parsed_hash['time'], '11:26:11'
-    assert_equal parsed_hash['update'], '0'
+    assert_equal parsed_hash['update'], 0
     assert_equal parsed_hash['vsize'], '265M'
   end
 
