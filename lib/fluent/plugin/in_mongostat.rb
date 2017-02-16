@@ -111,7 +111,28 @@ module Fluent
       status['dirty'] = status['dirty'].to_f  if status.has_key?('dirty')
       status['used'] = status['used'].to_f  if status.has_key?('used')
 
+      status['net_in'] = parse_unit(status['net_in']) if status.has_key?('net_in')
+      status['net_out'] = parse_unit(status['net_out']) if status.has_key?('net_out')
+      status['res'] = parse_unit(status['res']) if status.has_key?('res')
+      status['vsize'] = parse_unit(status['vsize']) if status.has_key?('vsize')
+
       return status
+    end
+
+    def parse_unit(str)
+      si_prefix = {
+        'T'   =>  1e12,
+        'G'   =>  1e9,
+        'M'   =>  1e6,
+        'k'   =>  1e3
+      }
+      value = str.to_f
+      unit = str[/[a-zA-Z]+/]
+      if si_prefix.has_key?(unit)
+        return (value * si_prefix[unit]).to_i
+      else
+        return value.to_i
+      end
     end
 
     def mongostat_exists?

@@ -84,15 +84,15 @@ class MongostatInputTest < Minitest::Test
     assert_equal parsed_hash['flushes'], 2
     assert_equal parsed_hash['getmore'], 1
     assert_equal parsed_hash['insert'], 3
-    assert_equal parsed_hash['net_in'], '158b'
-    assert_equal parsed_hash['net_out'], '44.7k'
+    assert_equal parsed_hash['net_in'], 158
+    assert_equal parsed_hash['net_out'], 44700
     assert_equal parsed_hash['qrw'], {'qr'=>3, 'qw'=>1}
     assert_equal parsed_hash['query'], 10
-    assert_equal parsed_hash['res'], '62.0M'
+    assert_equal parsed_hash['res'], 62000000
     assert_equal parsed_hash['time'], '06:32:22'
     assert_equal parsed_hash['update'], 1
     assert_equal parsed_hash['used'], 0.3
-    assert_equal parsed_hash['vsize'], '265M'
+    assert_equal parsed_hash['vsize'], 265000000
     assert_equal parsed_hash['hostname'], 'localhost:27017'
   end
 
@@ -111,16 +111,16 @@ class MongostatInputTest < Minitest::Test
     assert_equal parsed_hash['flushes'], 0
     assert_equal parsed_hash['getmore'], 1
     assert_equal parsed_hash['insert'], 0
-    assert_equal parsed_hash['net_in'], '793b'
-    assert_equal parsed_hash['net_out'], '44.0k'
+    assert_equal parsed_hash['net_in'], 793
+    assert_equal parsed_hash['net_out'], 44000
     assert_equal parsed_hash['qrw'], {'qr'=>0, 'qw'=>0}
     assert_equal parsed_hash['query'], 0
     assert_equal parsed_hash['repl'], 'PRI'
-    assert_equal parsed_hash['res'], '1.08G'
+    assert_equal parsed_hash['res'], 1080000000
     assert_equal parsed_hash['set'], 'set1'
     assert_equal parsed_hash['time'], '11:26:11'
     assert_equal parsed_hash['update'], 0
-    assert_equal parsed_hash['vsize'], '265M'
+    assert_equal parsed_hash['vsize'], 265000000
     assert_equal parsed_hash['hostname'], 'host1'
   end
 
@@ -135,6 +135,15 @@ class MongostatInputTest < Minitest::Test
     assert_raises(Fluent::ParserError) do
       parsed_hash = d.instance.parse_line mongostat_error_output
     end
+  end
+
+  def test_parse_unit
+    d = create_driver
+    assert_equal d.instance.parse_unit("140b"), 140
+    assert_equal d.instance.parse_unit("14.0k"), 14000
+    assert_equal d.instance.parse_unit("14.0M"), 14000000
+    assert_equal d.instance.parse_unit("14.0G"), 14000000000
+    assert_equal d.instance.parse_unit("14.0T"), 14000000000000
   end
 
 end
