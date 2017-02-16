@@ -117,10 +117,10 @@ module Fluent
     def mongostat_exists?
       begin
         `mongostat --version`
-        return true
       rescue Errno::ENOENT
         return false
       end
+      return true
     end
 
   end
