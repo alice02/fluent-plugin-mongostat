@@ -45,70 +45,73 @@ module Fluent
     def run
       Open3.popen3(@command) do |i, o, e, w|
         o.each do |line|
-          stat = parse_line(line)
-          replaced_hash = replace_hash_key(stat, 'host', 'hostname')
-          router.emit(@tag, Fluent::Engine.now, replaced_hash)
+          status = parse_line(line)
+          router.emit(@tag, Fluent::Engine.now, status)
         end
       end
     end
 
     def parse_line(line)
       begin
-        stat = JSON.parse(line.delete('*')).values[0]
+        json_hash = JSON.parse(line.delete('*'))
       rescue JSON::ParserError
         raise ParserError, 'response json parse error'
       end
 
-      if stat.has_key?('error')
-        return stat
+      status = json_hash.values[0]
+
+      if status.has_key?('error')
+        return status
       end
 
-      if stat.has_key?('command')
-        stat['command'] = stat['command'].split('|')[0].to_i
+     if status.has_key?('command')
+        status['command'] = status['command'].split('|')[0].to_i
       end
 
-      if stat.has_key?('arw')
-        arw = stat['arw'].split('|')
-        stat['arw'] = {'ar' => arw[0].to_i, 'aw' => arw[1].to_i}
-      elsif stat.has_key?('ar|aw')
-        arw = stat['ar|aw'].split('|')
-        stat.delete('ar|aw')
-        stat['arw'] = {'ar' => arw[0].to_i, 'aw' => arw[1].to_i}
+      if !status.has_key?('host')
+        hostname = json_hash.keys[0]
+        status['hostname'] = hostname
+      else
+        status['hostname'] = status.delete('host')
       end
 
-      if stat.has_key?('qrw')
-        qrw = stat['qrw'].split('|')
-        stat['qrw'] = {'qr' => qrw[0].to_i, 'qw' => qrw[1].to_i}
-      elsif stat.has_key?('qr|qw')
-        qrw = stat['qr|qw'].split('|')
-        stat.delete('qr|qw')
-        stat['qrw'] = {'qr' => qrw[0].to_i, 'qw' => qrw[1].to_i}
+      if status.has_key?('arw')
+        arw = status['arw'].split('|')
+        status['arw'] = {'ar' => arw[0].to_i, 'aw' => arw[1].to_i}
+      elsif status.has_key?('ar|aw')
+        arw = status['ar|aw'].split('|')
+        status.delete('ar|aw')
+        status['arw'] = {'ar' => arw[0].to_i, 'aw' => arw[1].to_i}
       end
 
-      if stat.has_key?('netIn')
-        stat = replace_hash_key(stat, 'netIn', 'net_in')
+      if status.has_key?('qrw')
+        qrw = status['qrw'].split('|')
+        status['qrw'] = {'qr' => qrw[0].to_i, 'qw' => qrw[1].to_i}
+      elsif status.has_key?('qr|qw')
+        qrw = status['qr|qw'].split('|')
+        status.delete('qr|qw')
+        status['qrw'] = {'qr' => qrw[0].to_i, 'qw' => qrw[1].to_i}
       end
 
-      if stat.has_key?('netOut')
-        stat = replace_hash_key(stat, 'netOut', 'net_out')
+      if status.has_key?('netIn')
+        status['net_in'] = status.delete('netIn')
       end
 
-      stat['conn'] = stat['conn'].to_i if stat.has_key?('conn')
-      stat['delete'] = stat['delete'].to_i  if stat.has_key?('delete')
-      stat['flushes'] = stat['flushes'].to_i  if stat.has_key?('flushes')
-      stat['getmore'] = stat['getmore'].to_i  if stat.has_key?('getmore')
-      stat['insert'] = stat['insert'].to_i  if stat.has_key?('insert')
-      stat['query'] = stat['query'].to_i  if stat.has_key?('query')
-      stat['update'] = stat['update'].to_i  if stat.has_key?('update')
-      stat['dirty'] = stat['dirty'].to_f  if stat.has_key?('dirty')
-      stat['used'] = stat['used'].to_f  if stat.has_key?('used')
+      if status.has_key?('netOut')
+        status['net_out'] = status.delete('netOut')
+      end
 
-      return stat
-    end
+      status['conn'] = status['conn'].to_i if status.has_key?('conn')
+      status['delete'] = status['delete'].to_i  if status.has_key?('delete')
+      status['flushes'] = status['flushes'].to_i  if status.has_key?('flushes')
+      status['getmore'] = status['getmore'].to_i  if status.has_key?('getmore')
+      status['insert'] = status['insert'].to_i  if status.has_key?('insert')
+      status['query'] = status['query'].to_i  if status.has_key?('query')
+      status['update'] = status['update'].to_i  if status.has_key?('update')
+      status['dirty'] = status['dirty'].to_f  if status.has_key?('dirty')
+      status['used'] = status['used'].to_f  if status.has_key?('used')
 
-    def replace_hash_key(hash, old_key, new_key)
-      hash[new_key] = hash.delete(old_key)
-      return hash
+      return status
     end
 
     def mongostat_exists?

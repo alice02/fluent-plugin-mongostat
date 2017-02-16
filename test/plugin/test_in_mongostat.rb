@@ -93,6 +93,7 @@ class MongostatInputTest < Minitest::Test
     assert_equal parsed_hash['update'], 1
     assert_equal parsed_hash['used'], 0.3
     assert_equal parsed_hash['vsize'], '265M'
+    assert_equal parsed_hash['hostname'], 'localhost:27017'
   end
 
   def test_parse_line_with_discover
@@ -120,6 +121,7 @@ class MongostatInputTest < Minitest::Test
     assert_equal parsed_hash['time'], '11:26:11'
     assert_equal parsed_hash['update'], 0
     assert_equal parsed_hash['vsize'], '265M'
+    assert_equal parsed_hash['hostname'], 'host1'
   end
 
   def test_parse_line_with_no_data
@@ -133,13 +135,6 @@ class MongostatInputTest < Minitest::Test
     assert_raises(Fluent::ParserError) do
       parsed_hash = d.instance.parse_line mongostat_error_output
     end
-  end
-
-  def test_replace_hash_key
-    hash = {'old0'=>'0', 'old1'=>'1'}
-    d = create_driver
-    new_hash = d.instance.replace_hash_key hash, 'old0', 'new0'
-    assert_equal new_hash, {'new0'=>'0', 'old1'=>'1'}
   end
 
 end
