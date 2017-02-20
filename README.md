@@ -20,7 +20,7 @@ In your Fluentd configuration, use `@type mongostat`.
 ```
 <source>
   @type mongostat
-  tag mongostat.__HOSTNAME__
+  tag mongostat.log
   refresh_interval 10
 </source>
 ```
@@ -28,10 +28,11 @@ In your Fluentd configuration, use `@type mongostat`.
 ## Configuration
 ### tag
 the tag of event.
+- default: mongostat
 
 ### option
 Option for mongostat command.
-- default: None.
+- default: None
 
 ### refresh_interval
 Interval of get mongostat metrics.
