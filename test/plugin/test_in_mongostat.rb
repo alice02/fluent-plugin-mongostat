@@ -13,9 +13,12 @@ class MongostatInputTest < Minitest::Test
   def create_driver(conf = CONFIG, tag = 'test', command_exists = true)
     driver = Fluent::Test::BufferedOutputTestDriver.new(Fluent::MongostatInput, tag)
     if command_exists
-      stub_method = MiniTest::Mock.new.expect :call, true
-      driver.instance.stub :mongostat_exists?, stub_method do
-        return driver.configure(conf)
+      mongostat_stub = MiniTest::Mock.new.expect :call, true
+      hostname_stub = MiniTest::Mock.new.expect :call, "testhost"
+      driver.instance.stub :mongostat_exists?, mongostat_stub do
+        driver.instance.stub :get_hostname, hostname_stub do
+          return driver.configure(conf)
+        end
       end
     else
       stub_method = MiniTest::Mock.new.expect :call, false
@@ -93,7 +96,7 @@ class MongostatInputTest < Minitest::Test
     assert_equal parsed_hash['update'], 1
     assert_equal parsed_hash['used'], 0.3
     assert_equal parsed_hash['vsize'], 265000000
-    assert_equal parsed_hash['hostname'], 'localhost:27017'
+    assert_equal parsed_hash['hostname'], 'testhost'
   end
 
   def test_parse_line_with_discover

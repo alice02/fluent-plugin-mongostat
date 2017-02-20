@@ -30,6 +30,7 @@ module Fluent
       end
 
       @command = %(mongostat #{@option} --json #{@refresh_interval})
+      @hostname = get_hostname
     end
 
     def start
@@ -69,8 +70,7 @@ module Fluent
       end
 
       if !status.has_key?('host')
-        hostname = json_hash.keys[0]
-        status['hostname'] = hostname
+        status['hostname'] = @hostname
       else
         status['hostname'] = status.delete('host')
       end
@@ -146,6 +146,10 @@ module Fluent
         return false
       end
       return true
+    end
+
+    def get_hostname
+      return `hostname`.chomp!
     end
 
   end
