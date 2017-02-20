@@ -122,8 +122,12 @@ module Fluent
     def parse_unit(str)
       si_prefix = {
         'T'   =>  1e12,
+        't'   =>  1e12,
         'G'   =>  1e9,
+        'g'   =>  1e9,
         'M'   =>  1e6,
+        'm'   =>  1e6,
+        'K'   =>  1e3,
         'k'   =>  1e3
       }
       value = str.to_f

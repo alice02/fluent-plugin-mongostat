@@ -140,9 +140,14 @@ class MongostatInputTest < Minitest::Test
   def test_parse_unit
     d = create_driver
     assert_equal d.instance.parse_unit("140b"), 140
+    assert_equal d.instance.parse_unit("140B"), 140
     assert_equal d.instance.parse_unit("14.0k"), 14000
+    assert_equal d.instance.parse_unit("14.0K"), 14000
+    assert_equal d.instance.parse_unit("14.0m"), 14000000
     assert_equal d.instance.parse_unit("14.0M"), 14000000
+    assert_equal d.instance.parse_unit("14.0g"), 14000000000
     assert_equal d.instance.parse_unit("14.0G"), 14000000000
+    assert_equal d.instance.parse_unit("14.0t"), 14000000000000
     assert_equal d.instance.parse_unit("14.0T"), 14000000000000
   end
 
